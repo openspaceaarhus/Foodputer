@@ -26,26 +26,60 @@ class Slice_state:
 class Slice:
     def __init__(self, state):
         self.state = state
+        self.angle = 0
+        self.da = 2.0 * math.pi / 3.0
+        self.center = (W/2, H/2)
+        self.r = min(W,H) / 3.0
 
     def draw(self, surface):
 #        print "draw me like one of your french girls"
         color = (0,255,0)
         if (Slice_state.READY == self.state):
             color = (255,255,0)
-        elif (Slice_state.LOCED == self.state):
+        elif (Slice_state.LOCKED == self.state):
             color = (255,0,0)
-        pygame.draw.line(surface, color, (0,0), (W,H))
         
+        center = (self.center[0] + 12.0 * math.cos(self.angle + self.da * .5),
+                  self.center[1] + 12.0 * math.sin(self.angle + self.da * .5))
+
+        p1 = (center[0] + self.r * math.cos(self.angle),
+              center[1] + self.r * math.sin(self.angle))
+        p2 = (center[0] + self.r * math.cos(self.angle + self.da),
+              center[1] + self.r * math.sin(self.angle + self.da))
+
+        pygame.draw.line(surface, color, center, p1, 6)
+        pygame.draw.line(surface, color, center, p2, 6)
+        
+        #create amn Rect covering ze points
+        # left = self.center[0] - self.r
+        # top =  self.center[1] - self.r
+        # rect = pygame.Rect(left, top, self.r * 2,self.r * 2)
+        # pygame.draw.arc(surface, color, rect , self.angle, self.angle + self.da, 16)
+        
+        #arc sucks
+        last = p1
+        steps = 7
+        ss = self.da/steps
+        for i in range(steps + 1):
+            da = i * ss
+            cur = (center[0] + self.r * math.cos(self.angle + da),
+                   center[1] + self.r * math.sin(self.angle + da))
+            pygame.draw.line(surface, color, last, cur, 6)
+            last = cur
+
+
         
 class Barcode(Slice):
     
     def __init__(self):
         Slice.__init__(self, Slice_state.READY)
+        self.angle += 2 * self.da
 
 class Pin(Slice):
     
     def __init__(self):
         Slice.__init__(self, Slice_state.LOCKED)
+        self.angle += self.da
 
 class Rfid(Slice):
     
@@ -82,7 +116,13 @@ def handle_barcode(str):
     """Handle the barcode input
 
     based on barcode state"""
-
+    
+    if barcode.state ==  Slice_state.DONE or barcode.state ==  Slice_state.LOCKED:
+        #do nothing
+        print "cant do nothing usefull maybe beep to annoy the user?"
+    else :
+        barcode.state = Slice_state.DONE;
+    
 
 def is_pin(str):
     return str[0] == 'p'
@@ -144,6 +184,8 @@ while running:
     #update the screen
     screen.fill(BG)
     barcode.draw(screen)
+    pin.draw(screen)
+    rfid.draw(screen)
 
     pygame.display.flip()
 
