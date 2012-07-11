@@ -8,7 +8,9 @@ from Rfid import Rfid
 from Pin import Pin
 
 from State import *
+from Foodputer import *
 
+import putil
 
 #SETTINGS
 #TODO FULLSCREEN = 0
@@ -26,6 +28,11 @@ running = 1
 
 strbuf = ""
 
+#foodputer = Foodputer()
+set_state(start)
+
+
+
 def valid_id_char(s):
     return s.isalnum() or "-" in s
 
@@ -39,15 +46,15 @@ def handle_input(str):
         return
 
     if Rfid.is_rfid(str):
-        State.state.handle_rfid(str)
+        Foodputer.state.handle_rfid(str)
     elif Barcode.is_barcode(str):
-        State.state.handle_barcode(str)
+        Foodputer.state.handle_barcode(str)
     elif Pin.is_pin(str):
-        State.state.handle_pin(str)
+        Foodputer.state.handle_pin(str)
     else:
         print "Unknown input ", str
 
-    trace("main in state: {}".format(type(State.state).__name__))
+    putil.trace("main in state: {}".format(type(Foodputer.state).__name__))
     
 def quit():
     print "bye bye"
