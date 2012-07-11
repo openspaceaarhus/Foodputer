@@ -58,9 +58,6 @@ class Barcode(Slice):
         else:
             return order_string(self.order)
 
-    @staticmethod
-    def is_barcode(str):
-        return str[0] == 'b'
 
     def handle_barcode(self, str):
         """Handle the barcode input

@@ -2,14 +2,9 @@
 
 import pygame, sys, math
 
-from Slice import Slice, Slice_state
-from Barcode import Barcode
-from Rfid import Rfid
-from Pin import Pin
-
 from State import *
 from Foodputer import *
-
+from GUI import  *
 import putil
 
 #SETTINGS
@@ -24,45 +19,21 @@ pygame.init()
 #vars
 screen = pygame.display.set_mode((W,H))
 clock = pygame.time.Clock()
-running = 1
-
-strbuf = ""
-
-#foodputer = Foodputer()
-set_state(start)
 
 
+Foodputer.set_state(start)
+Foodputer.screen = Screen()
 
 def valid_id_char(s):
     return s.isalnum() or "-" in s
-
-
-def handle_input(str):
-    """Is is RFID, BARCODE og PIN
-
-    and what action to take"""
-    
-    if len(str) < 1:
-        return
-
-    if Rfid.is_rfid(str):
-        Foodputer.state.handle_rfid(str)
-    elif Barcode.is_barcode(str):
-        Foodputer.state.handle_barcode(str)
-    elif Pin.is_pin(str):
-        Foodputer.state.handle_pin(str)
-    else:
-        print "Unknown input ", str
-
-    putil.trace("main in state: {}".format(type(Foodputer.state).__name__))
     
 def quit():
     print "bye bye"
     sys.exit(0)
 
-
 walltime = 0
-
+strbuf = ""
+running = 1
 while running:
     dt = clock.tick(90)
     walltime += dt
@@ -89,21 +60,16 @@ while running:
             strbuf += key
 
 
-    #do the logic
-    # barcode.update(walltime)
-    # rfid.update(walltime)
-    # if rfid.state == Slice_state.DONE  and  barcode.state == Slice_state.DONE:
-    #     pin.state = Slice_state.READY
-    # pin.update(walltime)
 
 
     #update the screen
     screen.fill(BG)
-    # barcode.draw(screen)
-    # pin.draw(screen)
-    # rfid.draw(screen)
+    Foodputer.screen.update(dt)
 
-
+    #draw stuff
+    Foodputer.screen.draw(screen)
 
     pygame.display.flip()
+
+
 

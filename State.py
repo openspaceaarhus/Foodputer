@@ -1,12 +1,10 @@
 import putil
-import Foodputer
+from  Foodputer import *
 import Hal
 from Products import Product
+import GUI
 
 class State(object):
-    
-#    def __init__(self):
-
 
     #override to implement behaviour
     def handle_rfid(self, str):
@@ -68,13 +66,16 @@ class Ordering(State):
         putil.trace("ding")
         item = Product.get_from_barcode(str)
         if item == None:
-            Foodputer.warn("Unknown product cannot buy here")
+            GUI.warn("Unknown product cannot buy here")
             return
-
+        Foodputer.order.add_item(item)
 
     def on_entry(self):
         #clear orders
         putil.trace("new shopper")
+        
+    def handle_undo(self):
+        Foodputer.order.undo_order()
 
 
 class Pin_check(State):

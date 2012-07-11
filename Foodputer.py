@@ -7,32 +7,99 @@ class order(object):
     def __init__(self, name, token):
         self.name = name
         self.token = token
+        self.buy_list = []
+        self.cart = {} #map id -> (product, #items)
+
+    def add_item(self, item):
+        #add to a stack of orders
+        self.buy_list.append(item)
+        #update inventory
+        cnt = 1
+        if item.id in self.cart:
+            cur = self.cart[item.id]
+            cnt += cur[1] 
+            
+        self.cart[item.id] = (item, cnt) 
+
+    def remove_item(self, item):
+        if not item.id in self.cart:
+            putil.trace("NO such item in cart")
+            return
+        
+        cur = self.cart[item.id]
+        cnt = cur[1] - 1
+        if cnt == 0:
+            del self.cart[item.id]
+        else:
+            self.cart[item.id] = (item, cnt) #update cnt
+            
+    def undo_order(self):
+        if len(self.buy_list) < 1:
+            putil.trace("cant undo no more")
+            return
+        item = self.buy_list.pop()
+        self.remove_item(item)
+        GUI.info("Removed {} from cart".format(item.name))
+        
+
+        
     
 class Foodputer(object):
     state = None
     order = None
+    screen = None
+
+    @staticmethod
+    def set_state(s):
+        putil.trace("set state: {}".format(type(s).__name__))
+        if Foodputer.state != None:
+            Foodputer.state.on_exit() 
+        s.on_entry()
+        Foodputer.state = s;
+
+    @staticmethod
+    def new_order(name, token):
+        Foodputer.order = order(name, token)
+
+
+
 
 Product.read_productlist()
 
-def set_state(s):
-    putil.trace("set state: {}".format(type(s).__name__))
-    if Foodputer.state != None:
-        Foodputer.state.on_exit() 
-        
-    s.on_entry()
-    Foodputer.state = s;
 
-def new_order(name, token):
-    Foodputer.order = order(name, token)
+def is_barcode(str):
+    return str[0] == 'b'
 
-def info(str):
-        #use a screen
-    print "INFO: ", str
+def is_rfid(str):
+    return str[0] == 'r'
 
-def warn(str):
-        #use a screen
-    print "WARN: ", str
+def is_pin(str):
+    return str[0] == 'p'
 
-def alert(str):
-        #use a screen
-    print "ALERT: ", str        
+
+def handle_input(str):
+    """Is is RFID, BARCODE og PIN
+
+    and what action to take"""
+    
+    if len(str) < 1:
+        return
+    if str == "a":
+        Foodputer.state.handle_abort()
+    elif str == "u":
+        Foodputer.state.handle_undo()
+    elif is_rfid(str):
+        Foodputer.state.handle_rfid(str)
+    elif is_barcode(str):
+        Foodputer.state.handle_barcode(str)
+    elif is_pin(str):
+        Foodputer.state.handle_pin(str)
+    else:
+        print "Unknown input ", str
+
+    putil.trace("main in state: {}".format(type(Foodputer.state).__name__))
+
+
+
+#omfg circular imports fix w00t
+import GUI
