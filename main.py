@@ -7,6 +7,8 @@ from Barcode import Barcode
 from Rfid import Rfid
 from Pin import Pin
 
+from State import *
+
 
 #SETTINGS
 #TODO FULLSCREEN = 0
@@ -21,12 +23,6 @@ pygame.init()
 screen = pygame.display.set_mode((W,H))
 clock = pygame.time.Clock()
 running = 1
-
-barcode = Barcode()
-pin = Pin()
-rfid = Rfid()
-                         
-
 
 strbuf = ""
 
@@ -43,14 +39,15 @@ def handle_input(str):
         return
 
     if Rfid.is_rfid(str):
-        rfid.handle_rfid(str)
+        State.state.handle_rfid(str)
     elif Barcode.is_barcode(str):
-        barcode.handle_barcode(str)
+        State.state.handle_barcode(str)
     elif Pin.is_pin(str):
-        pin.handle_pin(str)
+        State.state.handle_pin(str)
     else:
         print "Unknown input ", str
 
+    trace("main in state: {}".format(type(State.state).__name__))
     
 def quit():
     print "bye bye"
@@ -86,18 +83,18 @@ while running:
 
 
     #do the logic
-    barcode.update(walltime)
-    rfid.update(walltime)
-    if rfid.state == Slice_state.DONE  and  barcode.state == Slice_state.DONE:
-        pin.state = Slice_state.READY
-    pin.update(walltime)
+    # barcode.update(walltime)
+    # rfid.update(walltime)
+    # if rfid.state == Slice_state.DONE  and  barcode.state == Slice_state.DONE:
+    #     pin.state = Slice_state.READY
+    # pin.update(walltime)
 
 
     #update the screen
     screen.fill(BG)
-    barcode.draw(screen)
-    pin.draw(screen)
-    rfid.draw(screen)
+    # barcode.draw(screen)
+    # pin.draw(screen)
+    # rfid.draw(screen)
 
 
 
