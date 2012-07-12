@@ -1,22 +1,22 @@
 import putil
-from  Foodputer import *
+import Foodputer
 import Hal
-from Products import Product
+import Products
 import GUI
 
 class State(object):
 
     #override to implement behaviour
     def handle_rfid(self, str):
-        putil.trace("{}:handle_rfid({})".format(type(Foodputer.state).__name__, str))
+        putil.trace("{}:handle_rfid({})".format(type(self).__name__, str))
     def handle_barcode(self, str):
-        putil.trace("{}:handle_barcode({})".format(type(Foodputer.state).__name__, str))
+        putil.trace("{}:handle_barcode({})".format(type(self).__name__, str))
     def handle_pin(self, str):
-        putil.trace("{}:handle_pin({})".format(type(Foodputer.state).__name__, str))
+        putil.trace("{}:handle_pin({})".format(type(self).__name__, str))
     def handle_abort(self):
-        putil.trace("{}:handle_abort({})".format(type(Foodputer.state).__name__, ""))
+        putil.trace("{}:handle_abort({})".format(type(self).__name__, ""))
     def handle_undo(self):
-        putil.trace("{}:handle_undo({})".format(type(Foodputer.state).__name__, ""))
+        putil.trace("{}:handle_undo({})".format(type(self).__name__, ""))
     def on_entry(self):
         putil.trace("enter: {}".format(type(self).__name__))
     def on_exit(self):
@@ -52,6 +52,7 @@ class Rfid_check(State):
         print data
         Foodputer.new_order("username", "TokenToken")
         Foodputer.set_state(ordering)
+        GUI.set_state(GUI.ordering)
         
 class Ordering(State):
 
@@ -64,18 +65,18 @@ class Ordering(State):
 
     def handle_barcode(self, str):
         putil.trace("ding")
-        item = Product.get_from_barcode(str)
+        item = Products.get_from_barcode(str)
         if item == None:
             GUI.warn("Unknown product cannot buy here")
             return
-        Foodputer.order.add_item(item)
+        Foodputer.add_item(item)
 
     def on_entry(self):
         #clear orders
         putil.trace("new shopper")
         
     def handle_undo(self):
-        Foodputer.order.undo_order()
+        Foodputer.undo()
 
 
 class Pin_check(State):

@@ -32,8 +32,12 @@ class Product:
             putil.trace(Product.atlas[p[0]])
 
 
-    @staticmethod
-    def get_from_barcode(barcode):
-        if barcode in Product.atlas:
-            return Product.atlas[barcode]
-        return None
+
+def get_from_barcode(barcode):
+    if barcode in Product.atlas:
+        return Product.atlas[barcode]
+    return None
+
+
+
+Product.read_productlist()

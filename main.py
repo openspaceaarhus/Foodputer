@@ -1,10 +1,9 @@
 #! /usr/bin/env python
 
 import pygame, sys, math
-
-from State import *
-from Foodputer import *
-from GUI import  *
+import State
+import Foodputer
+import GUI
 import putil
 
 #SETTINGS
@@ -17,12 +16,13 @@ BG = (0,0,0)
 pygame.init()
 
 #vars
-screen = pygame.display.set_mode((W,H))
+surface = pygame.display.set_mode((W,H))
 clock = pygame.time.Clock()
 
 
-Foodputer.set_state(start)
-Foodputer.screen = Screen()
+Foodputer.set_state(State.start)
+
+GUI.set_state( GUI.start)
 
 def valid_id_char(s):
     return s.isalnum() or "-" in s
@@ -48,7 +48,7 @@ while running:
             continue
 
         if event.key == pygame.K_RETURN:
-            handle_input(strbuf)
+            Foodputer.handle_input(strbuf)
             strbuf = ""
         elif event.key == pygame.K_ESCAPE:
             quit()
@@ -63,13 +63,10 @@ while running:
 
 
     #update the screen
-    screen.fill(BG)
-    Foodputer.screen.update(dt)
+    surface.fill(BG)
+    GUI.Screen.state.update(dt)
 
     #draw stuff
-    Foodputer.screen.draw(screen)
+    GUI.Screen.state.draw(surface)
 
     pygame.display.flip()
-
-
-

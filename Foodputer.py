@@ -1,8 +1,8 @@
-from State import * 
+import State
 import putil
-from Products import Product 
+import Products
 
-class order(object):
+class Order(object):
     
     def __init__(self, name, token):
         self.name = name
@@ -11,6 +11,7 @@ class order(object):
         self.cart = {} #map id -> (product, #items)
 
     def add_item(self, item):
+        print "add_item:", item
         #add to a stack of orders
         self.buy_list.append(item)
         #update inventory
@@ -47,24 +48,32 @@ class order(object):
 class Foodputer(object):
     state = None
     order = None
-    screen = None
-
-    @staticmethod
-    def set_state(s):
-        putil.trace("set state: {}".format(type(s).__name__))
-        if Foodputer.state != None:
-            Foodputer.state.on_exit() 
-        s.on_entry()
-        Foodputer.state = s;
-
-    @staticmethod
-    def new_order(name, token):
-        Foodputer.order = order(name, token)
 
 
 
+def new_order(name, token):
+    Foodputer.order = Order(name, token)
 
-Product.read_productlist()
+
+def get_cart():
+    if not Foodputer.order:
+        return None
+    return Foodputer.order.cart
+    
+
+def add_item(item):
+    if not Foodputer.order:
+        putil.trace("trying to put things in non-cart")
+        return
+    Foodputer.order.add_item(item)
+
+def undo():
+    if not Foodputer.order:
+        putil.trace("trying to undo a non-cart")
+        return
+    Foodputer.order.undo_order()
+    
+    
 
 
 def is_barcode(str):
@@ -79,7 +88,7 @@ def is_pin(str):
 
 def handle_input(str):
     """Is is RFID, BARCODE og PIN
-
+    
     and what action to take"""
     
     if len(str) < 1:
@@ -96,8 +105,19 @@ def handle_input(str):
         Foodputer.state.handle_pin(str)
     else:
         print "Unknown input ", str
-
+        
     putil.trace("main in state: {}".format(type(Foodputer.state).__name__))
+
+
+
+        
+def set_state(s):
+    putil.trace("set state: {}".format(type(s).__name__))
+    if Foodputer.state != None:
+        Foodputer.state.on_exit() 
+    Foodputer.state = s;
+    s.on_entry()
+
 
 
 
