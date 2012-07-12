@@ -25,7 +25,12 @@ class Validator(Thread):
         self.alive = 0
 
     def run(self):
-        data = ACCEPT # DENY, NOFUNDS
+        pin = self.pincheck.pin
+        data = ACCEPT
+        if pin == "p4":
+            data = DENY
+        elif pin == "p3":
+            data =  NOFUNDS
         time.sleep(1)
         if self.alive:
             self.pincheck.handle_hal(data)

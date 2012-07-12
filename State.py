@@ -1,8 +1,12 @@
+#The main state machine code
+#The logic of the foodputer resides here
+
 import putil
 import Foodputer
 import Hal
 import Products
 import GUI
+import SoundEffects
 
 class State(object):
 
@@ -57,6 +61,8 @@ class Rfid_check(State):
         Foodputer.new_order( data[0], data[1]) 
         Foodputer.set_state(ordering)
         GUI.set_state(GUI.ordering)
+        Pin_check.tries_left = 3;
+                
         
 class Ordering(State):
 
@@ -65,6 +71,7 @@ class Ordering(State):
 
     def handle_pin(self, str):
         putil.trace("shop smart, shop k-mart")
+        Pin_check.pin = str
         Foodputer.set_state(pin_check)
 
     def handle_barcode(self, str):
@@ -72,9 +79,11 @@ class Ordering(State):
         item = Products.get_from_barcode(str)
         if item == None:
             GUI.warn("Unknown product cannot buy here")
+            SoundEffects.deny()
             return
         GUI.info("Added {} - \"{}\"".format(item.name, item.text))
         Foodputer.add_item(item)
+
 
     def handle_abort(self):
         Foodputer.set_state(start)
@@ -83,6 +92,7 @@ class Ordering(State):
 
     def on_entry(self):
         putil.trace("new shopper")
+        SoundEffects.start_snd.play()
         GUI.clear_messages()
         
     def handle_undo(self):
@@ -90,7 +100,8 @@ class Ordering(State):
 
 
 class Pin_check(State):
-
+    tries_left = 0;
+    pin = ""
     def _init__(self):
         State.__init__(self)
         self.validator = None
@@ -108,10 +119,27 @@ class Pin_check(State):
 
     def handle_hal(self, data):
         putil.trace("caching")
-        Foodputer.set_state(start)
-        GUI.set_state(GUI.start)
-
-
+        if data == Hal.ACCEPT:
+            Foodputer.set_state(start)
+            SoundEffects.coin_snd.play()
+            GUI.set_state(GUI.MessageScreen("Payment success", 3, GUI.start))
+        elif data == Hal.DENY:
+            if Pin_check.tries_left == 0:
+                Foodputer.set_state(start)
+                GUI.set_state(GUI.MessageScreen("NO MORE TRIES WRONG PIN", 3, GUI.start))
+            else:
+                Pin_check.tries_left -= 1;
+                Foodputer.set_state(ordering)
+                txt = "WRONG PIN: {} tries left".format(Pin_check.tries_left)
+                GUI.set_state(GUI.MessageScreen(txt, 3, GUI.start))
+        elif data == Hal.NOFUNDS:
+            Foodputer.set_state(ordering)
+            txt = "Not enough monies"
+            GUI.set_state(GUI.MessageScreen(txt, 3, GUI.ordering))
+        else:
+            putil.trace("no such return is nice");
+            
+                        
 
 
 
