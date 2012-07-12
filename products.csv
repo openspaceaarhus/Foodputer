@@ -1,3 +1,5 @@
-#simple list for tests
+#simple list for tests MUST be in iso-8859-1 ascii and not utf-8
 b1, Club Mate, man gewonhnt sich daran, 15
 b2, Snickers, taste is king, 5
+b3, Flæskesvær, knasende sprøde, 5
+b4, Chips, fra kims, 5

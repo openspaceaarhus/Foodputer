@@ -1,7 +1,7 @@
 import pygame, math
 import Foodputer
 import putil
-
+from Timeout import Timeout
 
 red = (255, 0, 0)
 green = (0, 255,0)
@@ -13,10 +13,9 @@ yellow = (255,255,0)
 class Screen(object):
     small_font = ''
     large_font = ''    
-    
     messages = []
-    
     state = None
+    char_cnt = 0
 
     def __init__(self):
         pygame.init()
@@ -70,6 +69,29 @@ class WaitScreen(Screen):
         self.large_txt(surface, self.msg)
 
 
+class MessageScreen(Screen):
+
+    def __init__(self, msg, timeout, next_screen):
+        Screen.__init__(self)
+        self.msg = msg
+        timer = Timeout(timeout, self)
+        self.next_screen = next_screen
+        #stop input
+        Foodputer.Foodputer.accept_input = False 
+        timer.start()
+
+    def draw(self, surface):
+#        print "draw me like one of your french girls"
+        self.large_txt(surface, self.msg, (100, 100), red)
+
+    def callback(self):
+        #allow input
+        Foodputer.Foodputer.accept_input = True 
+
+        print "I'm going through changes"
+        set_state(self.next_screen)
+
+
 class OrderScreen(Screen):
 
     def __init__(self):
@@ -77,14 +99,16 @@ class OrderScreen(Screen):
         
     def draw(self, surface):
 #        print "draw me like one of your french girls"
+        order = Foodputer.Foodputer.order #hmmm
+        self.large_txt(surface, "Hi {}".format(order.name), (10, 10))
         self.draw_messages(surface)
         self.draw_cart(surface)
+        self.draw_strbuf(surface)
 
     def draw_messages(self, surface):
-        heading = self.large_font.render("messages:", 1, green)
-        yoffset = 250
-        xoffset = 200
-        surface.blit(heading, (xoffset, yoffset))
+        yoffset = 10
+        xoffset = 400
+        self.large_txt(surface, "messages:", (xoffset, yoffset))
         yoffset += self.large_font.get_linesize()
         msg_cnt = len(Screen.messages)
         cnt = min(msg_cnt, 5)
@@ -96,16 +120,15 @@ class OrderScreen(Screen):
 
 
     def draw_cart(self, surface):
-        heading = self.large_font.render("Cart:", 1, green)
-        yoffset = 50
-        xoffset = 200
+        yoffset = 200
+        xoffset = 250
         self.large_txt(surface, "Cart:", (xoffset, yoffset))
         yoffset += self.large_font.get_linesize()
         cart = Foodputer.get_cart()
         if not cart:
             return
         total = 0
-        xoffset2 = 400
+        xoffset2 = 450
         for k in cart.keys():
             tup = cart[k]
             item = tup[0]
@@ -118,13 +141,18 @@ class OrderScreen(Screen):
             yoffset += self.small_line
 
 
-        line = self.large_font.render("TOTAL %0.2f" % total, 1, green)
-        surface.blit(line, (xoffset, yoffset))
+        line = self.large_font.render("TOTAL        %0.2f" % total, 1, green)
+        surface.blit(line, (xoffset, 500))
 
          
+    def draw_strbuf(self, surface):
+        txt = ''.join([ "*"] * Screen.char_cnt)
+        txt = "Enter pin to complete order:{}".format(txt)
+        self.large_txt(surface, txt, (10, 550))
+
 
 ################################################################################
-#        STATEVARS                                                             #
+#        STATEVARS and the like                                                #
 ################################################################################
 
 start = StartScreen()
@@ -139,6 +167,8 @@ def set_state(s):
     s.on_entry()
     Screen.state = s;
 
+def set_charcount(cnt):
+    Screen.char_cnt = cnt;
 
 
         

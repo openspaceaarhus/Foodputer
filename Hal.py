@@ -3,7 +3,11 @@ from threading import Thread
 import putil
 import time
 import urllib2
+import random
 
+ACCEPT = 0
+DENY = 1
+NOFUNDS = 2
 
 
 class Validator(Thread):
@@ -21,7 +25,7 @@ class Validator(Thread):
         self.alive = 0
 
     def run(self):
-        data = "validation data"
+        data = ACCEPT # DENY, NOFUNDS
         time.sleep(1)
         if self.alive:
             self.pincheck.handle_hal(data)
@@ -44,7 +48,9 @@ class id_fetcher(Thread):
         self.alive = 0
 
     def run(self):
-        data = "ID from HAL"
+        data = ("Bent hansen", "token token")
+        if random.random() > .8:
+            data = None
         # try:
         #     resp = urllib2.urlopen("{}/{}".format(self.URL, self.rfid.nr))
         #     data = resp.read()

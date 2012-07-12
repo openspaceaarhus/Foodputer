@@ -50,10 +50,12 @@ class Rfid_check(State):
         self.fetcher = None
         
     def handle_hal(self, data):
-        print data
-        Foodputer.new_order("username", "TokenToken")
+        if not data:
+            Foodputer.set_state(start)
+            GUI.set_state(GUI.MessageScreen("Unknown RFID, try again", 1, GUI.start))
+            return
+        Foodputer.new_order( data[0], data[1]) 
         Foodputer.set_state(ordering)
-        GUI.info("Hi username")
         GUI.set_state(GUI.ordering)
         
 class Ordering(State):
@@ -73,6 +75,11 @@ class Ordering(State):
             return
         GUI.info("Added {} - \"{}\"".format(item.name, item.text))
         Foodputer.add_item(item)
+
+    def handle_abort(self):
+        Foodputer.set_state(start)
+        GUI.set_state(GUI.MessageScreen("Back to start", 1, GUI.start))
+        
 
     def on_entry(self):
         putil.trace("new shopper")

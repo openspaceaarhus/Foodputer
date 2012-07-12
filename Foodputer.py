@@ -48,6 +48,7 @@ class Order(object):
 class Foodputer(object):
     state = None
     order = None
+    accept_input = True
 
 
 
@@ -91,7 +92,7 @@ def handle_input(str):
     
     and what action to take"""
     
-    if len(str) < 1:
+    if len(str) < 1 or not Foodputer.accept_input:
         return
     if str == "a":
         Foodputer.state.handle_abort()

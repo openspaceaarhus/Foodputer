@@ -21,8 +21,8 @@ clock = pygame.time.Clock()
 
 
 Foodputer.set_state(State.start)
-
 GUI.set_state( GUI.start)
+
 
 def valid_id_char(s):
     return s.isalnum() or "-" in s
@@ -50,6 +50,7 @@ while running:
         if event.key == pygame.K_RETURN:
             Foodputer.handle_input(strbuf)
             strbuf = ""
+            GUI.set_charcount(len(strbuf))
         elif event.key == pygame.K_ESCAPE:
             quit()
         
@@ -58,6 +59,7 @@ while running:
         if valid_id_char(key):
             #print "valid"
             strbuf += key
+            GUI.set_charcount(len(strbuf))
 
 
 
