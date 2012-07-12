@@ -27,9 +27,7 @@ class Screen(object):
 
     def draw(self, surface):
 #        print "draw me like one of your french girls"
-        heading = self.large_font.render("Open Space Aarhus Foodputer", 1, green)
-        surface.blit(heading, (400, 400))
-
+        self.large_txt(surface, "Open Space Aarhus Foodputer")
 
     def update(self, dt):
         self.time += dt
@@ -38,6 +36,14 @@ class Screen(object):
         putil.trace("GUI enter: {}".format(type(self).__name__))
     def on_exit(self):
         putil.trace("GUI exit: {}".format(type(self).__name__))
+
+    def large_txt(self, surface, str, pos = (100, 200), color = green):
+        txt = self.large_font.render(str, 1, color)
+        surface.blit(txt, pos)
+
+    def small_txt(self, surface, str, pos = (100, 200), color = green):
+        txt = self.small_font.render(str, 1, color)
+        surface.blit(txt, pos)
 
 
 
@@ -49,9 +55,19 @@ class StartScreen(Screen):
 
     def draw(self, surface):
 #        print "draw me like one of your french girls"
-        heading = self.large_font.render("Scan RFID", 1, green)
-        surface.blit(heading, (400, 400))
+        self.large_txt(surface, "Scan RFID to start")
     
+
+
+class WaitScreen(Screen):
+
+    def __init__(self, msg):
+        Screen.__init__(self)
+        self.msg = msg
+
+    def draw(self, surface):
+#        print "draw me like one of your french girls"
+        self.large_txt(surface, self.msg)
 
 
 class OrderScreen(Screen):
@@ -66,38 +82,41 @@ class OrderScreen(Screen):
 
     def draw_messages(self, surface):
         heading = self.large_font.render("messages:", 1, green)
-        yoffset = 50
+        yoffset = 250
         xoffset = 200
         surface.blit(heading, (xoffset, yoffset))
         yoffset += self.large_font.get_linesize()
-        cnt = min(len(Screen.messages), 5)
+        msg_cnt = len(Screen.messages)
+        cnt = min(msg_cnt, 5)
         for i in range(cnt):
-            msg = Screen.messages[-i]
-            line = self.small_font.render(msg[1], 1, message_level.get_color(msg[0]))
-            surface.blit(line, (xoffset, yoffset))
+            msg = Screen.messages[msg_cnt - i - 1]
+            self.small_txt(surface, msg[1], (xoffset, yoffset), message_level.get_color(msg[0]))
             yoffset += self.small_line
 
 
 
     def draw_cart(self, surface):
         heading = self.large_font.render("Cart:", 1, green)
-        yoffset = 200
+        yoffset = 50
         xoffset = 200
-        surface.blit(heading, (xoffset, yoffset))
+        self.large_txt(surface, "Cart:", (xoffset, yoffset))
         yoffset += self.large_font.get_linesize()
         cart = Foodputer.get_cart()
         if not cart:
             return
         total = 0
+        xoffset2 = 400
         for k in cart.keys():
             tup = cart[k]
             item = tup[0]
             cnt = tup[1]
             total += cnt * item.price
-            txt = "{} stk {} a {}".format(cnt, item.name, item.price)           
-            line = self.small_font.render(txt, 1, green)
-            surface.blit(line, (xoffset, yoffset))
+            txt = "{} stk {} a".format(cnt, item.name)           
+            self.small_txt(surface, txt, (xoffset, yoffset))
+            txt = "{}{}".format(" " if item.price < 10 else "", "%0.2f" % item.price)
+            self.small_txt(surface, txt , (xoffset2, yoffset))
             yoffset += self.small_line
+
 
         line = self.large_font.render("TOTAL %0.2f" % total, 1, green)
         surface.blit(line, (xoffset, yoffset))
@@ -110,6 +129,8 @@ class OrderScreen(Screen):
 
 start = StartScreen()
 ordering = OrderScreen()
+wait_rfid = WaitScreen("Awaiting HAL check of RFID")
+wait_pin = WaitScreen("Awaiting HAL check of PIN")
 
 def set_state(s):
     putil.trace("GUI set state: {}".format(type(s).__name__))
@@ -159,4 +180,5 @@ def alert(str):
     Screen.messages.append ( (message_level.ALERT, str) )
 
 
-
+def clear_messages():
+    Screen.messages = []

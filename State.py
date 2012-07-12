@@ -39,6 +39,7 @@ class Rfid_check(State):
         State.__init__(self)
 
     def on_entry(self):
+        GUI.set_state(GUI.wait_rfid)
         self.fetcher = Hal.id_fetcher(self)
         putil.trace("get the rfid from hal")
         self.fetcher.start()
@@ -52,6 +53,7 @@ class Rfid_check(State):
         print data
         Foodputer.new_order("username", "TokenToken")
         Foodputer.set_state(ordering)
+        GUI.info("Hi username")
         GUI.set_state(GUI.ordering)
         
 class Ordering(State):
@@ -69,11 +71,12 @@ class Ordering(State):
         if item == None:
             GUI.warn("Unknown product cannot buy here")
             return
+        GUI.info("Added {} - \"{}\"".format(item.name, item.text))
         Foodputer.add_item(item)
 
     def on_entry(self):
-        #clear orders
         putil.trace("new shopper")
+        GUI.clear_messages()
         
     def handle_undo(self):
         Foodputer.undo()
@@ -86,6 +89,7 @@ class Pin_check(State):
         self.validator = None
 
     def on_entry(self):
+        GUI.set_state(GUI.wait_pin)
         self.validator = Hal.Validator(self)
         putil.trace("Check pin and order and everything")
         self.validator.start()
@@ -98,6 +102,7 @@ class Pin_check(State):
     def handle_hal(self, data):
         putil.trace("caching")
         Foodputer.set_state(start)
+        GUI.set_state(GUI.start)
 
 
 
