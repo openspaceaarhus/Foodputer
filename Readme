@@ -1,0 +1,32 @@
+Til at snakke mde Hal så man kan bruge RFID i osaa til at handle
+
+kræver pygame
+
+køres som
+$ ./main.py
+
+pt i en test version.
+
+Hardwaren, forventes at virke som keyboards, hvilket vores RFID og stregkode læsere gør
+
+I test versionen kan der tastes:
+(Indtastning afsluttes med <enter>)
+
+Rfid:
+	enhver sekvens der begynder med r
+	r2 -> ikke eksisternde bruger
+Pin:
+	enhver sekvens der begynder med p
+	p3 -> ingen penge, p4 -> forkert kode
+Stregkode(barcode):
+	enhver sekvens der begynder med b	
+	(defineret i products.csv, men b1-4 er der)
+
+abort:
+	tryk a
+	virker vidst ikke alle steder endnu
+undo:
+	tryk u 
+
+
+
