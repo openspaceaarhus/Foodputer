@@ -14,14 +14,16 @@
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
 #The main state machine code
+
 #The logic of the foodputer resides here
+#The GUI part resides in GUI.py and they should be as loosly coupled as
+#possible
 
 import putil
 import Foodputer
 import Hal
 import Products
 import GUI
-import SoundEffects
 
 class State(object):
 
@@ -58,7 +60,7 @@ class Rfid_check(State):
         State.__init__(self)
 
     def on_entry(self):
-        GUI.set_state(GUI.wait_rfid)
+        GUI.wait_for_rfid()
         self.fetcher = Hal.id_fetcher(self)
         putil.trace("get the rfid from hal")
         self.fetcher.start()
@@ -71,14 +73,14 @@ class Rfid_check(State):
     def handle_hal(self, data):
         if not data:
             Foodputer.set_state(start)
-            GUI.set_state(GUI.MessageScreen("Unknown RFID, try again", 1, GUI.start))
+            GUI.no_rfid()
             return
         Foodputer.new_order( data[0], data[1]) 
         Foodputer.set_state(ordering)
-        GUI.set_state(GUI.ordering)
         Pin_check.tries_left = 3;
-                
-        
+        GUI.valid_rfid()
+
+
 class Ordering(State):
 
     def _init__(self):
@@ -94,7 +96,6 @@ class Ordering(State):
         item = Products.get_from_barcode(str)
         if item == None:
             GUI.warn("Unknown product cannot buy here")
-            SoundEffects.deny()
             return
         GUI.info("Added {} - \"{}\"".format(item.name, item.text))
         Foodputer.add_item(item)
@@ -102,12 +103,10 @@ class Ordering(State):
 
     def handle_abort(self):
         Foodputer.set_state(start)
-        GUI.set_state(GUI.MessageScreen("Back to start", 1, GUI.start))
-        
+        GUI.abort()
 
     def on_entry(self):
         putil.trace("new shopper")
-        SoundEffects.start_snd.play()
         GUI.clear_messages()
         
     def handle_undo(self):
@@ -122,7 +121,7 @@ class Pin_check(State):
         self.validator = None
 
     def on_entry(self):
-        GUI.set_state(GUI.wait_pin)
+        GUI.start_pincheck()
         self.validator = Hal.Validator(self)
         putil.trace("Check pin and order and everything")
         self.validator.start()
@@ -136,31 +135,26 @@ class Pin_check(State):
         putil.trace("caching")
         if data == Hal.ACCEPT:
             Foodputer.set_state(start)
-            SoundEffects.coin_snd.play()
-            GUI.set_state(GUI.MessageScreen("Payment success", 3, GUI.start))
+            GUI.accepted_order()
         elif data == Hal.DENY:
             if Pin_check.tries_left == 0:
-                Foodputer.set_state(start)
-                GUI.set_state(GUI.MessageScreen("NO MORE TRIES WRONG PIN", 3, GUI.start))
+                self.abort()
             else:
                 Pin_check.tries_left -= 1;
                 Foodputer.set_state(ordering)
-                txt = "WRONG PIN: {} tries left".format(Pin_check.tries_left)
-                GUI.set_state(GUI.MessageScreen(txt, 3, GUI.start))
+                GUI.wrong_pin(Pin_check.tries_left)
         elif data == Hal.NOFUNDS:
             Foodputer.set_state(ordering)
-            txt = "Not enough monies"
-            GUI.set_state(GUI.MessageScreen(txt, 3, GUI.ordering))
         else:
             putil.trace("no such return is nice");
             
                         
-
+    def handle_abort():
+        Foodputer.set_state(start)
+        GUI.abort()
 
 
 ###using the states for something
-
-        
 
 
 #init the states

@@ -172,7 +172,7 @@ class OrderScreen(Screen):
 
 
 ################################################################################
-#        STATEVARS and the like                                                #
+#        STATEVARS                                                             #
 ################################################################################
 
 start = StartScreen()
@@ -191,7 +191,6 @@ def set_charcount(cnt):
     Screen.char_cnt = cnt;
 
 
-        
 ################################################################################
 #        MESSAGES                                                              #
 ################################################################################
@@ -214,6 +213,59 @@ class message_level(object):
         elif (level == message_level.ALERT):
             return red
 
+################################################################################
+#        Events to handle from foodputers statechanges                         #
+################################################################################
+
+#TODO better naming and more doc
+
+def wait_for_rfid():
+    """Show the user that the rfid is being checked
+    
+    """
+    set_state(wait_rfid)
+
+
+def no_rfid():
+    """The Rfid were not valid
+
+    """
+    set_state(MessageScreen("Unknown RFID, try again", 1, start))
+
+def valid_rfid():
+    """The id process i succesfully completed
+    
+    Can start ordering
+    """
+    set_state(ordering)
+
+def abort():
+    """abort abort abort
+
+    No more shopping
+    """
+    set_state(MessageScreen("Back to start", 1, start))
+
+
+def start_pincheck():
+    set_state(wait_pin)
+
+def accepted_order():
+    set_state(MessageScreen("Payment success", 3, start))
+
+def wrong_pin(tries_left):
+
+    txt = "WRONG PIN: {} tries left".format(tries_left)
+    set_state(MessageScreen(txt, 3, start))
+
+                
+def not_enough_money():
+    """Cue the canned laughter
+
+    Keep shopping, user most remove items or abort
+    """
+    txt = "Not enough monies"
+    set_state(MessageScreen(txt, 3, ordering))
 
 def info(str):
         #use a screen

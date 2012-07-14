@@ -108,6 +108,7 @@ def handle_input(str):
     
     and what action to take"""
     
+#TODO move input accept to gui?
     if len(str) < 1 or not Foodputer.accept_input:
         return
     if str == "a":
