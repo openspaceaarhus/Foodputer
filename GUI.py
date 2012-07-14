@@ -17,6 +17,7 @@ import pygame, math
 import Foodputer
 import putil
 from Timeout import Timeout
+from Anim import Anim
 
 red = (255, 0, 0)
 green = (0, 255,0)
@@ -66,12 +67,16 @@ class StartScreen(Screen):
 
     def __init__(self):
         Screen.__init__(self)
+        self.coin = Anim("coin_gold.png", (8,1), .1, (300, 500))
 
     def draw(self, surface):
 #        print "draw me like one of your french girls"
         self.large_txt(surface, "Scan RFID to start")
-    
+        self.coin.draw(surface)
 
+    def update(self, dt):
+        Screen.update(self, dt)
+        self.coin.update(dt)
 
 class WaitScreen(Screen):
 
