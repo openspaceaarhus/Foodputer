@@ -51,6 +51,7 @@ class Start(State):
 
     def handle_rfid(self, str):
         putil.trace("Velcome user")
+        rfid_check.nr = str
         Foodputer.set_state(rfid_check)
 
 
@@ -58,6 +59,7 @@ class Rfid_check(State):
     
     def _init__(self):
         State.__init__(self)
+        self.nr = "42"
 
     def on_entry(self):
         GUI.wait_for_rfid()
@@ -70,12 +72,18 @@ class Rfid_check(State):
         self.fetcher.abort()
         self.fetcher = None
         
-    def handle_hal(self, data):
-        if not data:
+    def handle_hal(self, resp):
+        putil.trace("rfid check data: \"{}\"".format(resp))
+        if not resp:
+            putil.trace("must not happen")
+            return
+
+        if len(resp) < 2:
             Foodputer.set_state(start)
             GUI.no_rfid()
             return
-        Foodputer.new_order( data[0], data[1]) 
+
+        Foodputer.new_order( resp['user'], resp['token']) 
         Foodputer.set_state(ordering)
         Pin_check.tries_left = 3;
         GUI.valid_rfid()

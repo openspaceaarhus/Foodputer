@@ -22,6 +22,8 @@ import putil
 import time
 import urllib2
 import random
+import json
+
 
 ACCEPT = 0
 DENY = 1
@@ -71,14 +73,14 @@ class id_fetcher(Thread):
         self.alive = 0
 
     def run(self):
-        data = ("Bent hansen", "token token")
-        if random.random() > .8:
-            data = None
-        # try:
-        #     resp = urllib2.urlopen("{}/{}".format(self.URL, self.rfid.nr))
-        #     data = resp.read()
-        # except urllib2.URLError, e:
-        #     print e.reason
+        data = None
+        try:
+            resp = urllib2.urlopen("{}/{}".format(self.URL, self.rfid.nr))
+            data = json.loads(resp.read())
+            
+        except urllib2.URLError, e:
+            putil.trace(e.reason)
+
         time.sleep(1)
 
         if self.alive:

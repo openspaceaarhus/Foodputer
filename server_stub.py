@@ -16,38 +16,66 @@
 
 #this could be used to mock connections to hal...
 
-import asyncore
-import socket
 
-class EchoHandler(asyncore.dispatcher_with_send):
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import json
 
-    def handle_read(self):
-        data = self.recv(8192)
-        if data:
-            self.send("HTTP/1.1 200 OK\r\n\r\n\r\n{}\r\n".format(data))
-            self.close()
+idtoken = "TokenTOKEN"
 
-class EchoServer(asyncore.dispatcher):
+def gen_idresponse(rfid):
+    global idtoken
+    print rfid
+            #the magic
+    if rfid is "r2":
+        return None
 
-    def __init__(self, host, port):
-        asyncore.dispatcher.__init__(self)
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.set_reuse_addr()
-        self.bind((host, port))
-        self.listen(5)
+    resp = { 'user' : "Linda nielsen", 'token' : idtoken}
+    return json.dumps(resp)
 
-    def handle_accept(self):
-        pair = self.accept()
-        if pair is None:
-            pass
+
+
+class HalMock(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type',	'text/html')
+        self.end_headers()
+        rfid = self.path[1:] #remove first /
+        
+        resp = gen_idresponse(rfid)
+            #the magic
+        if not resp:
+            self.send_error(404,'User not Found: %s' % rfid)
         else:
-            sock, addr = pair
-            print 'Incoming connection from %s' % repr(addr)
-            handler = EchoHandler(sock)
+            self.wfile.write(resp)
 
 
-if __name__ == "__main__":
-    server = EchoServer('localhost', 8080)
-    asyncore.loop()
+    def do_POST(self):
+
+        try:
+            content = self.headers.getheader('content-type')
+            if ctype == 'multipart/form-data':
+                query=cgi.parse_multipart(self.rfile, pdict)
+            self.send_response(301)
+            
+            self.end_headers()
+            upfilecontent = query.get('upfile')
+            print "filecontent", upfilecontent[0]
+            self.wfile.write("<HTML>POST OK.<BR><BR>");
+            self.wfile.write(upfilecontent[0]);
+            
+        except :
+            pass
+
+def main():
+    try:
+        server = HTTPServer(('localhost', 8080), HalMock)
+        print 'started httpserver...'
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print '^C received, shutting down server'
+        server.socket.close()
+
+if __name__ == '__main__':
+    main()
 
 
