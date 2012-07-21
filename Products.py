@@ -17,7 +17,7 @@
 productfile = "products.csv"
 
 import putil
-    
+import json    
 
 class Product:
     atlas = {}  #the worldmap of prices? :S
@@ -46,6 +46,8 @@ class Product:
             
             putil.trace(Product.atlas[p[0]])
 
+    def __repr__(self):
+        return  self.name
 
 
 def get_from_barcode(barcode):

@@ -18,6 +18,7 @@
 
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import cgi
 import json
 
 idtoken = "TokenTOKEN"
@@ -26,7 +27,7 @@ def gen_idresponse(rfid):
     global idtoken
     print rfid
             #the magic
-    if rfid is "r2":
+    if rfid == "r2":
         return None
 
     resp = { 'user' : "Linda nielsen", 'token' : idtoken}
@@ -36,9 +37,6 @@ def gen_idresponse(rfid):
 
 class HalMock(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type',	'text/html')
-        self.end_headers()
         rfid = self.path[1:] #remove first /
         
         resp = gen_idresponse(rfid)
@@ -46,25 +44,27 @@ class HalMock(BaseHTTPRequestHandler):
         if not resp:
             self.send_error(404,'User not Found: %s' % rfid)
         else:
+            self.send_response(200)
+            self.send_header('Content-type',	'text/json')
+            self.end_headers()
             self.wfile.write(resp)
 
 
     def do_POST(self):
+        print "got a POST request"
 
-        try:
-            content = self.headers.getheader('content-type')
-            if ctype == 'multipart/form-data':
-                query=cgi.parse_multipart(self.rfile, pdict)
-            self.send_response(301)
+        length = int(self.headers.getheader('content-length'))        
+        indata = self.rfile.read(length)
+        data = json.loads(indata)
+        print data
+        # You now have a dictionary of the post data
+
+        self.send_response(200)
+        self.send_header('Content-type',	'text/json')
+        self.end_headers()
             
-            self.end_headers()
-            upfilecontent = query.get('upfile')
-            print "filecontent", upfilecontent[0]
-            self.wfile.write("<HTML>POST OK.<BR><BR>");
-            self.wfile.write(upfilecontent[0]);
-            
-        except :
-            pass
+        self.wfile.write(json.dumps({'orderstatus': "Accept"}));
+        return
 
 def main():
     try:

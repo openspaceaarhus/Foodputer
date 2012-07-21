@@ -74,11 +74,8 @@ class Rfid_check(State):
         
     def handle_hal(self, resp):
         putil.trace("rfid check data: \"{}\"".format(resp))
-        if not resp:
-            putil.trace("must not happen")
-            return
-
-        if len(resp) < 2:
+        if not resp or len(resp) < 2:
+            putil.trace("HAL doesnt know user or no contact")
             Foodputer.set_state(start)
             GUI.no_rfid()
             return
@@ -139,25 +136,27 @@ class Pin_check(State):
         self.validator.abort()
         self.validator = None
 
-    def handle_hal(self, data):
+    def handle_hal(self, status):
         putil.trace("caching")
-        if data == Hal.ACCEPT:
+
+        if status == Hal.ACCEPT:
             Foodputer.set_state(start)
             GUI.accepted_order()
-        elif data == Hal.DENY:
+        elif status == Hal.DENY:
             if Pin_check.tries_left == 0:
                 self.abort()
             else:
                 Pin_check.tries_left -= 1;
                 Foodputer.set_state(ordering)
                 GUI.wrong_pin(Pin_check.tries_left)
-        elif data == Hal.NOFUNDS:
+        elif status == Hal.NOFUNDS:
             Foodputer.set_state(ordering)
         else:
-            putil.trace("no such return is nice");
+            putil.trace("no such return is nice {}".format(status));
+            self.handle_abort()
             
                         
-    def handle_abort():
+    def handle_abort(self):
         Foodputer.set_state(start)
         GUI.abort()
 

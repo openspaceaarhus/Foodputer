@@ -57,7 +57,16 @@ class Order(object):
         item = self.buy_list.pop()
         self.remove_item(item)
         GUI.info("Removed {} from cart".format(item.name))
-        
+    
+    def total(self):
+        total = 0
+        for p in self.cart.keys():
+            tup = self.cart[p]
+            item = tup[0]
+            cnt = tup[1]
+            total += cnt * item.price
+
+        return total
 
         
     
@@ -76,7 +85,22 @@ def get_cart():
     if not Foodputer.order:
         return None
     return Foodputer.order.cart
+
+def get_order():
+    """return the order as a dict
     
+    """
+    if not Foodputer.order:
+        return None
+    order = Foodputer.order
+    data = {}
+    data['name'] = order.name
+    data['token'] = order.token
+#    data['cart'] = order.cart
+
+    data['total'] = order.total()
+
+    return data
 
 def add_item(item):
     if not Foodputer.order:

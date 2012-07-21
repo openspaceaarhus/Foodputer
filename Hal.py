@@ -18,21 +18,25 @@
 #it is a crude mock up for now
 
 from threading import Thread
+import sys
 import putil
 import time
 import urllib2
 import random
 import json
-
+import Foodputer
 
 ACCEPT = 0
 DENY = 1
 NOFUNDS = 2
 
+#    URL = 'https://hal.osaa.dk/food'
+URL = 'http://localhost:8080'
+
+LOCAL = 0
+
 
 class Validator(Thread):
-#    URL = 'https://hal.osaa.dk/food'
-    URL = 'http://localhost:8080'
 
     
     def __init__(self, pincheck):
@@ -46,22 +50,47 @@ class Validator(Thread):
 
     def run(self):
         pin = self.pincheck.pin
-        data = ACCEPT
-        if pin == "p4":
-            data = DENY
-        elif pin == "p3":
-            data =  NOFUNDS
-        time.sleep(1)
+        
+        #for debugging and mocking
+        if (LOCAL):
+            data = ACCEPT
+            if pin == "p4":
+                data = DENY
+            elif pin == "p3":
+                data =  NOFUNDS
+            time.sleep(1)
+            if self.alive:
+                self.pincheck.handle_hal(data)
+            return
+        
+        data = Foodputer.get_order()
+        payload = json.dumps(data).encode('utf-8')
+        print payload
+        ret = None
+        try:
+            print payload
+            resp = urllib2.urlopen(URL, payload)
+            print resp.info()
+            ret = json.load(resp.read())
+            
+        except urllib2.URLError, e:
+            putil.trace("could not contact hal!!")
+        except urllib2.HTTPError, e:
+            putil.trace("id_fetcher code {} because {}".format(e.code, e.reason))
+        except:
+            putil.trace("Other error {}".format(sys.exc_info()[0]))
+
+
+
         if self.alive:
-            self.pincheck.handle_hal(data)
+            self.pincheck.handle_hal(ret)
+
+        
 
 
 
 
 class id_fetcher(Thread):
-#    URL = 'https://hal.osaa.dk/food'
-    URL = 'http://localhost:8080'
-
     
     def __init__(self, rfid):
         Thread.__init__(self)
@@ -73,15 +102,25 @@ class id_fetcher(Thread):
         self.alive = 0
 
     def run(self):
+        nr = self.rfid.nr
+        #for debugging and mocking
+        if (LOCAL):
+            data = {'user': "bent hansen", 'token':"TokenToken"} if nr != "r2" else None
+            time.sleep(1)
+            self.rfid.handle_hal(data)
+            return
+
+            
+        
         data = None
         try:
-            resp = urllib2.urlopen("{}/{}".format(self.URL, self.rfid.nr))
+            resp = urllib2.urlopen("{}/{}".format(URL, nr))
+            print resp.info()
             data = json.loads(resp.read())
             
         except urllib2.URLError, e:
-            putil.trace(e.reason)
+            putil.trace("id_fetcher code {} because {}".format(e.code, e.reason))
 
-        time.sleep(1)
 
         if self.alive:
             self.rfid.handle_hal(data)
