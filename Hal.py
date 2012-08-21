@@ -37,8 +37,6 @@ LOCAL = 0
 
 
 class Validator(Thread):
-
-    
     def __init__(self, pincheck):
         Thread.__init__(self)
         self.pincheck = pincheck
@@ -73,22 +71,18 @@ class Validator(Thread):
             print resp.info()
             ret = json.load(resp.read())
             
-        except urllib2.URLError, e:
+        except (urllib2.URLError, urllib2.HTTPError), e:
             putil.trace("could not contact hal!!")
-        except urllib2.HTTPError, e:
-            putil.trace("id_fetcher code {} because {}".format(e.code, e.reason))
+            self.alive = False;
+            self.pincheck.handle_fail(e)
         except:
             putil.trace("Other error {}".format(sys.exc_info()[0]))
-
 
 
         if self.alive:
             self.pincheck.handle_hal(ret)
 
         
-
-
-
 
 class id_fetcher(Thread):
     
@@ -110,16 +104,18 @@ class id_fetcher(Thread):
             self.rfid.handle_hal(data)
             return
 
-            
-        
         data = None
         try:
             resp = urllib2.urlopen("{}/{}".format(URL, nr))
             print resp.info()
             data = json.loads(resp.read())
             
-        except urllib2.URLError, e:
-            putil.trace("id_fetcher code {} because {}".format(e.code, e.reason))
+        except (urllib2.URLError, urllib2.HTTPError), e:
+            putil.trace("could not contact hal!!")
+            self.alive = False;
+            self.rfid.handle_fail(e)
+        except:
+            putil.trace("Other error {}".format(sys.exc_info()[0]))
 
 
         if self.alive:

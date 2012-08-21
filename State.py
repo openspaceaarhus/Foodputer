@@ -85,6 +85,10 @@ class Rfid_check(State):
         Pin_check.tries_left = 3;
         GUI.valid_rfid()
 
+    def handle_fail(self, e):
+        GUI.hal_error(e)
+        Foodputer.set_state(start)
+
 
 class Ordering(State):
 
@@ -159,6 +163,11 @@ class Pin_check(State):
     def handle_abort(self):
         Foodputer.set_state(start)
         GUI.abort()
+
+    def handle_fail(self, e):
+        GUI.hal_error(e)
+        Foodputer.set_state(start)
+
 
 
 ###using the states for something

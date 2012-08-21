@@ -91,18 +91,22 @@ class WaitScreen(Screen):
 
 class MessageScreen(Screen):
 
-    def __init__(self, msg, timeout, next_screen):
+    def __init__(self, msg, timeout, next_screen, fine_print = False):
         Screen.__init__(self)
         self.msg = msg
         timer = Timeout(timeout, self)
         self.next_screen = next_screen
+        self.fine_print = fine_print
         #stop input
         Foodputer.Foodputer.accept_input = False 
         timer.start()
 
     def draw(self, surface):
 #        print "draw me like one of your french girls"
-        self.large_txt(surface, self.msg, (100, 100), red)
+        if self.fine_print:
+            self.small_txt(surface, self.msg, (100, 100), red)            
+        else:
+            self.large_txt(surface, self.msg, (100, 100), red)
 
     def callback(self):
         #allow input
@@ -231,6 +235,13 @@ def no_rfid():
 
     """
     set_state(MessageScreen("Unknown RFID, try again", 1, start))
+
+def hal_error(e):
+    """Something went wrong whilst talking to HAL
+
+    """
+    txt = "HAL: {}".format(e)
+    set_state(MessageScreen(txt, 6, start, True))
 
 def valid_rfid():
     """The id process i succesfully completed
