@@ -140,8 +140,15 @@ class Pin_check(State):
         self.validator.abort()
         self.validator = None
 
-    def handle_hal(self, status):
-        putil.trace("caching")
+    def handle_hal(self, json_data):
+        """handles the dict generated from parsing the json data
+
+        fields:
+        status: Hal.ACCEPT ect as int REQUIRED
+        """
+        
+        status = int(json_data['status'])
+        print "status: ", status
 
         if status == Hal.ACCEPT:
             Foodputer.set_state(start)

@@ -19,6 +19,7 @@
 
 from threading import Thread
 import sys
+import hashlib
 import putil
 import time
 import urllib2
@@ -62,14 +63,23 @@ class Validator(Thread):
             return
         
         data = Foodputer.get_order()
+
+        #remove token from data, but use it in sha1-digest
+        msg = "{}{}{}".format(data['name'], data['total'],data['token'])
+        digest = hashlib.sha512(msg).hexdigest()
+        del data['token']
+        data['signature'] = digest
+        
+
         payload = json.dumps(data).encode('utf-8')
-        print payload
         ret = None
         try:
             print payload
             resp = urllib2.urlopen(URL, payload)
-            print resp.info()
-            ret = json.load(resp.read())
+            print "resp info", resp.info()
+            txt = resp.read()
+            print "JSON is: ", txt
+            ret = json.loads(txt)
             
         except (urllib2.URLError, urllib2.HTTPError), e:
             putil.trace("could not contact hal!!")

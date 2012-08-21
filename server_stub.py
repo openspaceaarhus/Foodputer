@@ -18,8 +18,10 @@
 
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import hashlib
 import cgi
 import json
+import Hal
 
 idtoken = "TokenTOKEN"
 
@@ -33,6 +35,15 @@ def gen_idresponse(rfid):
     resp = { 'user' : "Linda nielsen", 'token' : idtoken}
     return json.dumps(resp)
 
+
+def validate_order(data):
+    """Checks if the signature is correct
+
+    the encoding part is in Hal.py
+    """
+    msg = "{}{}{}".format(data['name'], data['total'],idtoken)
+    digest = hashlib.sha512(msg).hexdigest()
+    return data['signature'] == digest
 
 
 class HalMock(BaseHTTPRequestHandler):
@@ -57,13 +68,21 @@ class HalMock(BaseHTTPRequestHandler):
         indata = self.rfile.read(length)
         data = json.loads(indata)
         print data
+        if not validate_order(data):
+            self.send_response(401, "invalid order")
+            self.end_headers()
+            self.wfile.close()
+            return
+
         # You now have a dictionary of the post data
 
         self.send_response(200)
         self.send_header('Content-type',	'text/json')
         self.end_headers()
             
-        self.wfile.write(json.dumps({'orderstatus': "Accept"}));
+        
+        self.wfile.write(json.dumps({'status': "{}".format(Hal.ACCEPT)}));
+        self.wfile.close()
         return
 
 def main():
