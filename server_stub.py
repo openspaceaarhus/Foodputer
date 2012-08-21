@@ -22,6 +22,7 @@ import hashlib
 import cgi
 import json
 import Hal
+import putil
 
 idtoken = "TokenTOKEN"
 
@@ -45,6 +46,10 @@ def validate_order(data):
     digest = hashlib.sha512(msg).hexdigest()
     return data['signature'] == digest
 
+def validate_accountbalance(data):
+    amount = float(data['total'])
+    putil.trace("Amount to see is {}".format(amount))
+    return amount < 42;
 
 class HalMock(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -67,23 +72,25 @@ class HalMock(BaseHTTPRequestHandler):
         length = int(self.headers.getheader('content-length'))        
         indata = self.rfile.read(length)
         data = json.loads(indata)
-        print data
-        if not validate_order(data):
-            self.send_response(401, "invalid order")
-            self.end_headers()
-            self.wfile.close()
-            return
-
         # You now have a dictionary of the post data
+        putil.trace(data)
+
+        ret = {} #return value
+
+        if not validate_order(data):
+            ret['status'] = "{}".format(Hal.DENY)
+        elif not validate_accountbalance(data):
+            putil.trace("nofounds")
+            ret['status'] = "{}".format(Hal.NOFUNDS)
+        else:
+            ret['status'] = Hal.ACCEPT
 
         self.send_response(200)
         self.send_header('Content-type',	'text/json')
         self.end_headers()
-            
-        
-        self.wfile.write(json.dumps({'status': "{}".format(Hal.ACCEPT)}));
+        self.wfile.write(json.dumps(ret));
         self.wfile.close()
-        return
+
 
 def main():
     try:

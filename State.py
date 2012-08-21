@@ -146,8 +146,10 @@ class Pin_check(State):
         fields:
         status: Hal.ACCEPT ect as int REQUIRED
         """
-        
-        status = int(json_data['status'])
+        if json_data['status']:
+            status = int(json_data['status'])
+        else:
+            status = Hal.DENY
         print "status: ", status
 
         if status == Hal.ACCEPT:
@@ -162,6 +164,7 @@ class Pin_check(State):
                 GUI.wrong_pin(Pin_check.tries_left)
         elif status == Hal.NOFUNDS:
             Foodputer.set_state(ordering)
+            GUI.not_enough_money();
         else:
             putil.trace("no such return is nice {}".format(status));
             self.handle_abort()

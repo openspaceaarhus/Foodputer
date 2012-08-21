@@ -87,7 +87,7 @@ class Validator(Thread):
             self.pincheck.handle_fail(e)
         except:
             putil.trace("Other error {}".format(sys.exc_info()[0]))
-
+            
 
         if self.alive:
             self.pincheck.handle_hal(ret)
