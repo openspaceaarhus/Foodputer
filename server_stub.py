@@ -25,6 +25,8 @@ import Hal
 import putil
 
 idtoken = "TokenTOKEN"
+PIN = "p1"
+
 
 def gen_idresponse(rfid):
     global idtoken
@@ -42,7 +44,11 @@ def validate_order(data):
 
     the encoding part is in Hal.py
     """
-    msg = "{}{}{}".format(data['name'], data['total'],idtoken)
+
+    #verify its a valid token
+    #assert(data['token'] == get_token(data['name']))
+    #pin = get_token(data['name']) BUT THIS IS NOT STORED IN HAL...
+    msg = "{}{}{}".format(data['name'], data['total'],idtoken, PIN)
     digest = hashlib.sha512(msg).hexdigest()
     return data['signature'] == digest
 

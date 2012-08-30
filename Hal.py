@@ -15,7 +15,6 @@
 
 
 #the stuff that talks to HAL
-#it is a crude mock up for now
 
 from threading import Thread
 import sys
@@ -65,9 +64,8 @@ class Validator(Thread):
         data = Foodputer.get_order()
 
         #remove token from data, but use it in sha1-digest
-        msg = "{}{}{}".format(data['name'], data['total'],data['token'])
+        msg = "{}{}{}{}".format(data['name'], data['total'],data['token'], pin)
         digest = hashlib.sha512(msg).hexdigest()
-        del data['token']
         data['signature'] = digest
         
 
