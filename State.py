@@ -146,10 +146,8 @@ class Pin_check(State):
         fields:
         status: Hal.ACCEPT ect as int REQUIRED
         """
-        if json_data['status']:
-            status = int(json_data['status'])
-        else:
-            status = Hal.DENY
+        
+        status = int(json_data['status'])
         print "status: ", status
 
         if status == Hal.ACCEPT:
@@ -157,11 +155,11 @@ class Pin_check(State):
             GUI.accepted_order()
         elif status == Hal.DENY:
             if Pin_check.tries_left == 0:
-                self.abort()
+                self.handle_abort()
             else:
-                Pin_check.tries_left -= 1;
                 Foodputer.set_state(ordering)
                 GUI.wrong_pin(Pin_check.tries_left)
+                Pin_check.tries_left -= 1;
         elif status == Hal.NOFUNDS:
             Foodputer.set_state(ordering)
             GUI.not_enough_money();

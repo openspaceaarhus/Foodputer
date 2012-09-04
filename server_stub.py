@@ -48,8 +48,10 @@ def validate_order(data):
     #verify its a valid token
     #assert(data['token'] == get_token(data['name']))
     #pin = get_token(data['name']) BUT THIS IS NOT STORED IN HAL...
-    msg = "{}{}{}".format(data['name'], data['total'],idtoken, PIN)
+    msg = "{}{}{}{}".format(data['name'], data['total'],idtoken, PIN)
+    print "MSG: ", msg
     digest = hashlib.sha512(msg).hexdigest()
+    print digest
     return data['signature'] == digest
 
 def validate_accountbalance(data):
@@ -84,11 +86,14 @@ class HalMock(BaseHTTPRequestHandler):
         ret = {} #return value
 
         if not validate_order(data):
+            putil.trace("status: HAL.DENY")
             ret['status'] = "{}".format(Hal.DENY)
         elif not validate_accountbalance(data):
             putil.trace("nofounds")
+            putil.trace("status: HAL.NOFOUNDS")
             ret['status'] = "{}".format(Hal.NOFUNDS)
         else:
+            putil.trace("status: HAL.ACCEPT")
             ret['status'] = Hal.ACCEPT
 
         self.send_response(200)

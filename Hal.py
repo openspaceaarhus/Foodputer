@@ -69,10 +69,10 @@ class Validator(Thread):
         data['signature'] = digest
         
 
-        payload = json.dumps(data).encode('utf-8')
+        payload = json.dumps(data)
         ret = None
         try:
-            print payload
+            print "PAYLOAD is: ", payload
             resp = urllib2.urlopen(URL, payload)
             print "resp info", resp.info()
             txt = resp.read()
@@ -81,7 +81,7 @@ class Validator(Thread):
             
         except (urllib2.URLError, urllib2.HTTPError), e:
             putil.trace("could not contact hal!!")
-            self.alive = False;
+            self.alive = False
             self.pincheck.handle_fail(e)
         except:
             putil.trace("Other error {}".format(sys.exc_info()[0]))

@@ -16,6 +16,7 @@
 import pygame, math
 import Foodputer
 import putil
+import SoundEffects
 from Timeout import Timeout
 from Anim import Anim
 
@@ -262,12 +263,13 @@ def start_pincheck():
     set_state(wait_pin)
 
 def accepted_order():
+    SoundEffects.coin_snd.play()
     set_state(MessageScreen("Payment success", 3, start))
 
 def wrong_pin(tries_left):
-
+    SoundEffects.deny_snd.play()
     txt = "WRONG PIN: {} tries left".format(tries_left)
-    set_state(MessageScreen(txt, 3, start))
+    set_state(MessageScreen(txt, 3, ordering))
 
                 
 def not_enough_money():
